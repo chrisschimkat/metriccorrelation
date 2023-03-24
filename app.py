@@ -26,12 +26,12 @@ if uploaded_file is not None:
     st.header("Correlation matrix")
 
     fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='hot', vmin=-1, vmax=1, ax=ax)
+    sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='coolwarm', vmin=-1, vmax=1, ax=ax)
     ax.set_title('Correlations with decay effect')
     st.pyplot(fig)
 
     st.header("Top 10 correlations:")
-
-    correlations_upper_triangle = decayed_correlations.where(np.triu(np.ones(decayed_correlations.shape), k=1).astype(np.bool))
-    top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
+    
+    correlations_without_self = decayed_correlations[decayed_correlations != 1]
+    top_10_correlations = correlations_without_self.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
