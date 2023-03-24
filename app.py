@@ -29,8 +29,8 @@ if uploaded_file is not None:
     ax.set_title('Correlations with decay effect')
     st.pyplot(fig)
 
-    st.header("Top 10 correlations (excluding correlations of a metric with itself):")
+    st.header("Top 10 correlations (excluding correlations of a metric with itself and flipped pairs):")
 
-    correlations_without_self = decayed_correlations[decayed_correlations != 1]
-    top_10_correlations = correlations_without_self.stack().nlargest(10)
+    correlations_upper_triangle = decayed_correlations.where(np.triu(np.ones(decayed_correlations.shape), k=1).astype(np.bool))
+    top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
