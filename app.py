@@ -32,9 +32,9 @@ if uploaded_file is not None:
     
     st.header("Top 10 correlations:")
     
-    # Consider only the upper triangle of the correlation matrix (excluding the diagonal)
-    correlations_upper_triangle = decayed_correlations.where(np.triu(np.ones(decayed_correlations.shape), k=1).astype(np.bool))
+    # Mask the lower triangle of the correlation matrix
+    mask = np.triu(np.ones_like(decayed_correlations, dtype=bool), k=1)
+    correlations_upper_triangle = decayed_correlations.where(mask)
 
-    # Sort the correlations and pick the top 10
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
