@@ -28,3 +28,9 @@ if uploaded_file is not None:
     sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='coolwarm', vmin=-1, vmax=1, ax=ax)
     ax.set_title('Correlations with decay effect')
     st.pyplot(fig)
+
+    st.header("Top 10 correlations (excluding correlations of a metric with itself):")
+
+    correlations_without_self = decayed_correlations[decayed_correlations != 1]
+    top_10_correlations = correlations_without_self.stack().nlargest(10)
+    st.write(top_10_correlations.to_frame('Correlation'))
