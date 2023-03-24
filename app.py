@@ -4,7 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-st.title("Metrics Correlations with Decay Effect")
+st.title("Metrics Correlation")
+st.markdown("See example input file [here](https://github.com/chrisschimkat/metriccorrelation/blob/main/Book1.csv)")
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
@@ -22,14 +23,14 @@ if uploaded_file is not None:
     decayed_df = apply_decay(df, decay_rate)
     decayed_correlations = decayed_df.corr()
 
-    st.header("Correlations with decay effect:")
+    st.header("Correlation matrix")
 
     fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='coolwarm', vmin=-1, vmax=1, ax=ax)
+    sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='hot', vmin=-1, vmax=1, ax=ax)
     ax.set_title('Correlations with decay effect')
     st.pyplot(fig)
 
-    st.header("Top 10 correlations (excluding correlations of a metric with itself and flipped pairs):")
+    st.header("Top 10 correlations:")
 
     correlations_upper_triangle = decayed_correlations.where(np.triu(np.ones(decayed_correlations.shape), k=1).astype(np.bool))
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
