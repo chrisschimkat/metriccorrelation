@@ -27,7 +27,12 @@ def load_data(uploaded_file):
         df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
         df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
         df.set_index('Date', inplace=True)
-        return df
+
+        # Compute hash of input data for use as cache key
+        df_hash = hashlib.md5(df.to_numpy().copy(order='C')).hexdigest()
+
+        # Return output and cache key
+        return df, df_hash
     except Exception as e:
         st.write("Error: ", e)
 
@@ -57,7 +62,11 @@ def calculate_correlations(df):
                                     'Correlation': corr_values,
                                     'Time lag (days)': time_lags})
 
-    return correlations_df
+    # Compute hash of input data for use as cache key
+    df_hash = hashlib.md5(df.to_numpy().copy(order='C')).hexdigest()
+
+    # Return output and cache key
+    return correlations_df, df_has
 
 
 @st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
