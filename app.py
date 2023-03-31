@@ -30,21 +30,13 @@ if uploaded_file is not None:
     df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
     df.set_index('Date', inplace=True)
 
-    def apply_decay(data, decay_rate):
-        decayed_data = data.copy()
-        for i in range(1, len(data)):
-            decayed_data.iloc[i] = decayed_data.iloc[i] + decayed_data.iloc[i - 1] * decay_rate
-        return decayed_data
-
-    decay_rate = 0.9
-    decayed_df = apply_decay(df, decay_rate)
-    decayed_correlations = decayed_df.corr()
+    correlations = df.corr()
 
     st.header("Correlation matrix")
 
     fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
-    ax.set_title('Correlations with decay effect')
+    sns.heatmap(correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
+    ax.set_title('Correlations')
     st.pyplot(fig)
 
     # Save the plot to a buffer
@@ -63,8 +55,8 @@ if uploaded_file is not None:
     st.header("Top 10 correlations:")
     
     # Mask the lower triangle of the correlation matrix
-    mask = np.triu(np.ones_like(decayed_correlations, dtype=bool), k=1)
-    correlations_upper_triangle = decayed_correlations.where(mask)
+    mask = np.triu(np.ones_like(correlations, dtype=bool), k=1)
+    correlations_upper_triangle = correlations.where(mask)
 
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
@@ -76,11 +68,11 @@ if uploaded_file is not None:
 
     if len(selected_metrics) == 2:
         fig, ax = plt.subplots(figsize=(12, 6))
-        ax.plot(decayed_df[selected_metrics[0]], label=selected_metrics[0])
+        ax.plot(df[selected_metrics[0]], label=selected_metrics[0])
         ax.set_ylabel(selected_metrics[0], fontsize=12)
 
         ax2 = ax.twinx()
-        ax2.plot(decayed_df[selected_metrics[1]], color='orange', label=selected_metrics[1])
+        ax2.plot(df[selected_metrics[1]], color='orange', label=selected_metrics[1])
         ax2.set_ylabel(selected_metrics[1], fontsize=12)
 
         ax.set_xlabel('Date', fontsize=12)
