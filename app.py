@@ -36,7 +36,7 @@ if uploaded_file is not None:
 
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
-    ax.set_title('Correlations with decay effect')
+    ax.set_title('Correlations')
     st.pyplot(fig)
 
     # Save the plot to a buffer
@@ -68,11 +68,11 @@ if uploaded_file is not None:
 
     if len(selected_metrics) == 2:
         fig, ax = plt.subplots(figsize=(12, 6))
-        ax.plot(decayed_df[selected_metrics[0]], label=selected_metrics[0])
+        ax.plot(df[selected_metrics[0]], label=selected_metrics[0])
         ax.set_ylabel(selected_metrics[0], fontsize=12)
 
         ax2 = ax.twinx()
-        ax2.plot(decayed_df[selected_metrics[1]], color='orange', label=selected_metrics[1])
+        ax2.plot(df[selected_metrics[1]], color='orange', label=selected_metrics[1])
         ax2.set_ylabel(selected_metrics[1], fontsize=12)
 
         ax.set_xlabel('Date', fontsize=12)
