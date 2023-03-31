@@ -7,6 +7,7 @@ import io
 from PIL import Image
 import requests
 from io import StringIO
+import hashlib
 
 st.title("Metrics Correlation")
 # Add a button for loading the sample CSV
@@ -18,7 +19,7 @@ st.markdown(f"See example input file {example_csv_link} (right-click and choose 
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
-@st.cache_data
+@st.cache_data(ttl=300)
 def load_data(file):
     df = pd.read_csv(file)
     df.columns = [col.capitalize() for col in df.columns]
@@ -27,7 +28,7 @@ def load_data(file):
     df.set_index('Date', inplace=True)
     return df
 
-@st.cache_data
+@st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
 def calculate_correlations(df):
     corr_values = []
     time_lags = []
@@ -55,14 +56,15 @@ def calculate_correlations(df):
 
     return correlations_df
 
-@st.cache_data
-def plot_heatmap(correlations):
+@st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
+def plot_heatmap(df):
+    correlations = df.corr()
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
     ax.set_title('Correlations')
     return fig
 
-@st.cache_data
+@st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
 def plot_time_series(df, selected_metrics):
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df[selected_metrics[0]], label=selected_metrics[0])
@@ -75,7 +77,6 @@ def plot_time_series(df, selected_metrics):
     ax.set_xlabel('Date', fontsize=12)
     ax.legend(loc='upper left')
     ax2.legend(loc='upper right')
-
     return fig
 
 if load_sample_csv:
@@ -90,7 +91,7 @@ if uploaded_file is not None:
 
     st.header("Correlation matrix")
 
-    fig = plot_heatmap(correlations)
+    fig = plot_heatmap(df)
     st.pyplot(fig)
 
     # Save the plot to a buffer
@@ -121,7 +122,7 @@ if uploaded_file is not None:
     if len(selected_metrics) == 2:
         fig = plot_time_series(df, selected_metrics)
         st.pyplot(fig)
-        
+
         # Save the plot to a buffer
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png')
