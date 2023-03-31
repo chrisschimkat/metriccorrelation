@@ -10,16 +10,18 @@ from io import StringIO
 
 st.title("Metrics Correlation")
 # Add a button for loading the sample CSV
-if st.button('Load Sample CSV'):
-    sample_csv_url = 'https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv'
-    content = requests.get(sample_csv_url).content
-    uploaded_file = StringIO(content.decode('utf-8'))
+load_sample_csv = st.button('Load Sample CSV')
 
 # Add a download link for the example input file
 example_csv_link = '[here](https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv?raw=true)'
 st.markdown(f"See example input file {example_csv_link} (right-click and choose 'Save link as...' to download)")
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
+
+if load_sample_csv:
+    sample_csv_url = 'https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv'
+    content = requests.get(sample_csv_url).content
+    uploaded_file = StringIO(content.decode('utf-8'))
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
