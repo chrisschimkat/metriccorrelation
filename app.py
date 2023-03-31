@@ -7,7 +7,6 @@ import io
 import requests
 from io import StringIO
 
-@st.cache
 def read_csv_file(uploaded_file):
     df = pd.read_csv(uploaded_file)
     df.columns = [col.capitalize() for col in df.columns]
