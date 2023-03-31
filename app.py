@@ -68,7 +68,7 @@ if 'uploaded_file' in st.session_state:
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
 
-    # Time series chart
+   # Time series chart
     st.header("Time series chart for selected metrics")
     st.markdown("Select two metrics to see how they compare over time. Use this to help with identifying the timeframe between cause and effect.")
 
@@ -76,7 +76,6 @@ if 'uploaded_file' in st.session_state:
         st.session_state.selected_metrics = df.columns[:2].tolist()
 
     selected_metrics = st.multiselect("Select two metrics to plot:", options=df.columns, default=st.session_state.selected_metrics)
-
 
     if len(selected_metrics) == 2:
         st.session_state.selected_metrics = selected_metrics
