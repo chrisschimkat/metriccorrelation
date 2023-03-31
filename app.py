@@ -55,11 +55,6 @@ if uploaded_file is not None:
                                     'Correlation': corr_values,
                                     'Time lag (days)': time_lags})
 
-    # Display top 10 correlated metrics sorted by correlation in descending order
-    top_10_correlations = correlations_df.sort_values('Correlation', ascending=False).head(10)
-    st.header("Time lags between top 10 correlated metrics (sorted by correlation in descending order)")
-    st.write(top_10_correlations[['Series 1', 'Series 2', 'Correlation', 'Time lag (days)']])
-
     correlations = df.corr()
 
     st.header("Correlation matrix")
@@ -84,9 +79,11 @@ if uploaded_file is not None:
 
     st.header("Time lags between top 10 correlated metrics")
 
-    # Display time lags for top 10 correlations
-    st.write(correlations_df[['Series 1', 'Series 2', 'Correlation', 'Time lag (days)']])
-
+    # Display top 10 correlated metrics sorted by correlation in descending order
+    top_10_correlations = correlations_df.sort_values('Correlation', ascending=False).head(10)
+    st.header("Time lags between top 10 correlated metrics (sorted by correlation in descending order)")
+    st.write(top_10_correlations[['Series 1', 'Series 2', 'Correlation', 'Time lag (days)']])
+    
     # Time series chart
     st.header("Time series chart for selected metrics")
     st.markdown("Select two metrics to see how they compare over time. Use this to help with identifying the timeframe between cause and effect.")
