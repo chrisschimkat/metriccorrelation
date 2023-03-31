@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import io
+from PIL import Image
 
 st.title("Metrics Correlation")
 st.markdown("See example input file [here](https://github.com/chrisschimkat/metriccorrelation/blob/main/Book1.csv)")
@@ -32,6 +34,19 @@ if uploaded_file is not None:
     sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
     ax.set_title('Correlations with decay effect')
     st.pyplot(fig)
+
+    # Save the plot to a buffer
+    buffer = io.BytesIO()
+    fig.savefig(buffer, format='png')
+    buffer.seek(0)
+
+    # Create an Image object and convert the buffer to base64
+    image = Image.open(buffer)
+    buffer.close()
+
+    # Export heatmap plot to PNG
+    if st.button('Export heatmap plot to PNG'):
+        st.download_button("Download heatmap plot", image, "heatmap_plot.png", "image/png")
     
     st.header("Top 10 correlations:")
     
@@ -48,21 +63,32 @@ if uploaded_file is not None:
     selected_metrics = st.multiselect("Select two metrics to plot:", options=df.columns, default=df.columns[:2].tolist())
 
     if len(selected_metrics) == 2:
-        fig, ax1 = plt.subplots(figsize=(10, 5))
-        ax2 = ax1.twinx()
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.plot(decayed_df[selected_metrics[0]], label=selected_metrics[0])
+        ax.set_ylabel(selected_metrics[0], fontsize=12)
 
-        ax1.plot(df.index, df[selected_metrics[0]], label=selected_metrics[0])
-        ax2.plot(df.index, df[selected_metrics[1]], label=selected_metrics[1], color='orange')
+        ax2 = ax.twinx()
+        ax2.plot(decayed_df[selected_metrics[1]], color='orange', label=selected_metrics[1])
+        ax2.set_ylabel(selected_metrics[1], fontsize=12)
 
-        ax1.set_title('Time series chart for selected metrics')
-        ax1.set_xlabel('Date')
-        ax1.set_ylabel(selected_metrics[0])
-        ax2.set_ylabel(selected_metrics[1])
-
-        ax1.legend(loc='upper left')
+        ax.set_xlabel('Date', fontsize=12)
+        ax.legend(loc='upper left')
         ax2.legend(loc='upper right')
 
         st.pyplot(fig)
+
+        # Save the plot to a buffer
+        buffer = io.BytesIO()
+        fig.savefig(buffer, format='png')
+        buffer.seek(0)
+
+        # Create an Image object and convert the buffer to base64
+        image = Image.open(buffer)
+        buffer.close()
+
+        # Export time series plot to PNG
+        if st.button('Export time series plot to PNG'):
+        st.download_button("Download time series plot", image, "time_series_plot.png", "image/png")
     else:
         st.warning("Please select exactly two metrics.")
 
