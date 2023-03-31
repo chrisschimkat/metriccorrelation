@@ -5,9 +5,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 from PIL import Image
+import requests
 
 st.title("Metrics Correlation")
-st.markdown("See example input file [here](https://github.com/chrisschimkat/metriccorrelation/blob/main/Book1.csv)")
+# Add a button for loading the sample CSV
+if st.button('Load Sample CSV'):
+    sample_csv_url = 'https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv'
+    uploaded_file = requests.get(sample_csv_url).content
+
+# Add a download link for the example input file
+example_csv_link = '[here](https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv?raw=true)'
+st.markdown(f"See example input file {example_csv_link}")
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
