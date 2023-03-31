@@ -12,6 +12,7 @@ uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
     df.columns = [col.capitalize() for col in df.columns]
+    df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
     df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
     df.set_index('Date', inplace=True)
 
