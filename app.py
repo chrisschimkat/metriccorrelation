@@ -9,14 +9,14 @@ import requests
 from io import StringIO
 
 st.title("Metrics Correlation")
-# Add a button for loading the sample CSV
-load_sample_csv = st.button('Load Sample CSV')
-
 # Add a download link for the example input file
 example_csv_link = '[here](https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv?raw=true)'
 st.markdown(f"See example input file {example_csv_link} (right-click and choose 'Save link as...' to download)")
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
+
+# Add a button for loading the sample CSV
+load_sample_csv = st.button('Load Sample CSV')
 
 if load_sample_csv:
     sample_csv_url = 'https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv'
@@ -77,11 +77,9 @@ if uploaded_file is not None:
     if st.button('Export heatmap plot to PNG'):
         st.download_button("Download heatmap plot", img_bytes, "heatmap_plot.png", "image/png")
 
-    st.header("Time lags between top 10 correlated metrics")
-
     # Display top 10 correlated metrics sorted by correlation in descending order
     top_10_correlations = correlations_df.sort_values('Correlation', ascending=False).head(10)
-    st.header("Time lags between top 10 correlated metrics (sorted by correlation in descending order)")
+    st.header("Top 10 correlated metrics (including optimal time lag)")
     st.write(top_10_correlations[['Series 1', 'Series 2', 'Correlation', 'Time lag (days)']])
     
     # Time series chart
