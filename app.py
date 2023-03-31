@@ -49,11 +49,16 @@ if uploaded_file is not None:
             corr_values.append(corr)
             time_lags.append(max_lag)
 
-    # Create dataframe with correlations and time lags
+  # Create dataframe with correlations and time lags
     correlations_df = pd.DataFrame({'Series 1': [df.columns[i] for i in range(len(df.columns)) for j in range(i+1, len(df.columns))],
                                     'Series 2': [df.columns[j] for i in range(len(df.columns)) for j in range(i+1, len(df.columns))],
                                     'Correlation': corr_values,
                                     'Time lag (days)': time_lags})
+
+    # Display top 10 correlated metrics sorted by correlation in descending order
+    top_10_correlations = correlations_df.sort_values('Correlation', ascending=False).head(10)
+    st.header("Time lags between top 10 correlated metrics (sorted by correlation in descending order)")
+    st.write(top_10_correlations[['Series 1', 'Series 2', 'Correlation', 'Time lag (days)']])
 
     correlations = df.corr()
 
