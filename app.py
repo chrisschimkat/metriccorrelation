@@ -6,16 +6,18 @@ import seaborn as sns
 import io
 from PIL import Image
 import requests
+from io import StringIO
 
 st.title("Metrics Correlation")
 # Add a button for loading the sample CSV
 if st.button('Load Sample CSV'):
     sample_csv_url = 'https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv'
-    uploaded_file = requests.get(sample_csv_url).content
+    content = requests.get(sample_csv_url).content
+    uploaded_file = StringIO(content.decode('utf-8'))
 
 # Add a download link for the example input file
 example_csv_link = '[here](https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv?raw=true)'
-st.markdown(f"See example input file {example_csv_link}")
+st.markdown(f"See example input file {example_csv_link} (right-click and choose 'Save link as...' to download)")
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
