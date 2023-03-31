@@ -7,7 +7,7 @@ import io
 from PIL import Image
 import requests
 from io import StringIO
-from streamlit.hashing import _CodeHasher
+from streamlit.hashing import CodeHasher as _CodeHasher
 
 class SessionState(object):
     def __init__(self, **kwargs):
