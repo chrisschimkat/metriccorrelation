@@ -76,22 +76,12 @@ if uploaded_file is not None:
     # Export heatmap plot to PNG
     if st.button('Export heatmap plot to PNG'):
         st.download_button("Download heatmap plot", img_bytes, "heatmap_plot.png", "image/png")
-    
-    st.header("Top 10 correlations:")
-
-    # Mask the lower triangle of the correlation matrix
-    mask = np.triu(np.ones_like(correlations, dtype=bool), k=1)
-    correlations_upper_triangle = correlations.where(mask)
-
-    top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
-    st.write(top_10_correlations.to_frame('Correlation'))
 
     st.header("Time lags between top 10 correlated metrics")
 
     # Display time lags for top 10 correlations
-    st.write(correlations_df[correlations_df['Series 1'].isin([pair[0] for pair in top_10_correlations.index]) & 
-                            correlations_df['Series 2'].isin([pair[1] for pair in top_10_correlations.index])])
-    
+    st.write(correlations_df[['Series 1', 'Series 2', 'Correlation', 'Time lag (days)']])
+
     # Time series chart
     st.header("Time series chart for selected metrics")
     st.markdown("Select two metrics to see how they compare over time. Use this to help with identifying the timeframe between cause and effect.")
