@@ -10,7 +10,9 @@ st.markdown("See example input file [here](https://github.com/chrisschimkat/metr
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file, parse_dates=['Date'], dayfirst=True)
+    df = pd.read_csv(uploaded_file)
+    df.columns = [col.capitalize() for col in df.columns]
+    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
     df.set_index('Date', inplace=True)
 
     def apply_decay(data, decay_rate):
@@ -38,3 +40,17 @@ if uploaded_file is not None:
 
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
+
+    # Time series chart
+    st.header("Time series chart for selected metrics")
+    selected_metrics = st.multiselect("Select two metrics to plot:", options=df.columns, default=df.columns[:2])
+
+    if len(selected_metrics) == 2:
+        fig, ax = plt.subplots(figsize=(10, 5))
+        df[selected_metrics].plot(ax=ax)
+        ax.set_title('Time series chart for selected metrics')
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Values')
+        st.pyplot(fig)
+    else:
+        st.warning("Please select exactly two metrics.")
