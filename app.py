@@ -4,9 +4,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import io
-from PIL import Image
 import requests
 from io import StringIO
+
+@st.cache
+def read_csv_file(uploaded_file):
+    df = pd.read_csv(uploaded_file)
+    df.columns = [col.capitalize() for col in df.columns]
+    df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
+    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
+    df.set_index('Date', inplace=True)
+    return df
 
 st.title("Metrics Correlation")
 # Add a button for loading the sample CSV
@@ -24,11 +32,7 @@ if load_sample_csv:
     uploaded_file = StringIO(content.decode('utf-8'))
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    df.columns = [col.capitalize() for col in df.columns]
-    df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
-    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
-    df.set_index('Date', inplace=True)
+    df = read_csv_file(uploaded_file)
     st.session_state.df = df
 
 if 'df' in st.session_state:
