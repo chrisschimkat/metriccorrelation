@@ -77,7 +77,7 @@ def plot_heatmap(df):
     ax.set_title('Correlations')
     return fig
 
-@st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
+@st.cache_data(ttl=300)
 def plot_time_series(df, selected_metrics):
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df[selected_metrics[0]], label=selected_metrics[0])
