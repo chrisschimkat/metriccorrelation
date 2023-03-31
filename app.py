@@ -123,4 +123,3 @@ if state.df is not None:
     # Show the table of top 10 correlated metrics with time lags
     st.header("Time lags between top 10 correlated metrics")
     st.write(corr_df)
-
