@@ -46,12 +46,22 @@ if uploaded_file is not None:
     selected_metrics = st.multiselect("Select two metrics to plot:", options=df.columns, default=df.columns[:2].tolist())
 
     if len(selected_metrics) == 2:
-        fig, ax = plt.subplots(figsize=(10, 5))
-        df[selected_metrics].plot(ax=ax)
-        ax.set_title('Time series chart for selected metrics')
-        ax.set_xlabel('Date')
-        ax.set_ylabel('Values')
+        fig, ax1 = plt.subplots(figsize=(10, 5))
+        ax2 = ax1.twinx()
+
+        ax1.plot(df.index, df[selected_metrics[0]], label=selected_metrics[0])
+        ax2.plot(df.index, df[selected_metrics[1]], label=selected_metrics[1], color='orange')
+
+        ax1.set_title('Time series chart for selected metrics')
+        ax1.set_xlabel('Date')
+        ax1.set_ylabel(selected_metrics[0])
+        ax2.set_ylabel(selected_metrics[1])
+
+        ax1.legend(loc='upper left')
+        ax2.legend(loc='upper right')
+
         st.pyplot(fig)
     else:
         st.warning("Please select exactly two metrics.")
+
 
