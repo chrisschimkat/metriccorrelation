@@ -8,8 +8,6 @@ from PIL import Image
 import requests
 from io import StringIO
 from streamlit.hashing import _CodeHasher
-import streamlit.ReportThread as ReportThread
-from streamlit.server.Server import Server
 
 class SessionState(object):
     def __init__(self, **kwargs):
@@ -17,7 +15,7 @@ class SessionState(object):
 
 def get_session():
     session = None
-    ctx = ReportThread.get_report_ctx()
+    ctx = _get_report_ctx()
     this_session = None
 
     current_server = Server.get_current()
@@ -44,6 +42,10 @@ def get_session():
         this_session = session._custom_session_state
 
     return this_session
+
+def _get_report_ctx():
+    """Hack to get the session object from Streamlit < 0.65.2."""
+    return getattr(st, "_report_ctx", None)
 
 st.title("Metrics Correlation")
 # Add a button for loading the sample CSV
