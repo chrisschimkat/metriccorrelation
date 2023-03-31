@@ -88,7 +88,7 @@ if uploaded_file is not None:
 
         # Export time series plot to PNG
         if st.button('Export time series plot to PNG'):
-        st.download_button("Download time series plot", image, "time_series_plot.png", "image/png")
+            st.download_button("Download time series plot", image, "time_series_plot.png", "image/png")
     else:
         st.warning("Please select exactly two metrics.")
 
