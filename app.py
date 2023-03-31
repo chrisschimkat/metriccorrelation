@@ -30,20 +30,12 @@ if uploaded_file is not None:
     df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
     df.set_index('Date', inplace=True)
 
-    def apply_decay(data, decay_rate):
-        decayed_data = data.copy()
-        for i in range(1, len(data)):
-            decayed_data.iloc[i] = decayed_data.iloc[i] + decayed_data.iloc[i - 1] * decay_rate
-        return decayed_data
-
-    decay_rate = 0.9
-    decayed_df = apply_decay(df, decay_rate)
-    decayed_correlations = decayed_df.corr()
+    correlations = df.corr()
 
     st.header("Correlation matrix")
 
     fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(decayed_correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
+    sns.heatmap(correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
     ax.set_title('Correlations with decay effect')
     st.pyplot(fig)
 
@@ -63,8 +55,8 @@ if uploaded_file is not None:
     st.header("Top 10 correlations:")
     
     # Mask the lower triangle of the correlation matrix
-    mask = np.triu(np.ones_like(decayed_correlations, dtype=bool), k=1)
-    correlations_upper_triangle = decayed_correlations.where(mask)
+    mask = np.triu(np.ones_like(correlations, dtype=bool), k=1)
+    correlations_upper_triangle = correlations.where(mask)
 
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
