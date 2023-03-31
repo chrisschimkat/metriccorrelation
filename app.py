@@ -7,14 +7,55 @@ import io
 from PIL import Image
 import requests
 from io import StringIO
+from streamlit.hashing import _CodeHasher
+import streamlit.ReportThread as ReportThread
+from streamlit.server.Server import Server
+
+class SessionState(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+def get_session():
+    session = None
+    ctx = ReportThread.get_report_ctx()
+    this_session = None
+
+    current_server = Server.get_current()
+    if hasattr(current_server, '_session_infos'):
+        # Streamlit >= 0.84
+        session_infos = Server.get_current()._session_infos.values()
+    else:
+        session_infos = Server.get_current()._session_info_by_id.values()
+
+    for session_info in session_infos:
+        s = session_info.session
+        if (
+            # Streamlit < 0.84.0
+            (hasattr(s, '_main_dg') and s._main_dg == ctx.main_dg)
+            # Streamlit >= 0.84.0
+            or (not hasattr(s, '_main_dg') and s.enqueue == ctx.enqueue)
+        ):
+            session = s
+            break
+
+    if session is not None:
+        if not hasattr(session, '_custom_session_state'):
+            session._custom_session_state = SessionState(**kwargs)
+        this_session = session._custom_session_state
+
+    return this_session
 
 st.title("Metrics Correlation")
+# Add a button for loading the sample CSV
+load_sample_csv = st.button('Load Sample CSV')
+
 # Add a download link for the example input file
 example_csv_link = '[here](https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv?raw=true)'
 st.markdown(f"See example input file {example_csv_link} (right-click and choose 'Save link as...' to download)")
 
-# Add a button for loading the sample CSV
-load_sample_csv = st.button('Load Sample CSV')
+state = get_session()
+if 'df' not in state:
+    state.df = None
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
@@ -24,11 +65,14 @@ if load_sample_csv:
     uploaded_file = StringIO(content.decode('utf-8'))
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
-    df.columns = [col.capitalize() for col in df.columns]
-    df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
-    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
-    df.set_index('Date', inplace=True)
+    state.df = pd.read_csv(uploaded_file)
+    state.df.columns = [col.capitalize() for col in state.df.columns]
+    state.df.columns = [col.strip() for col in state.df.columns]  # Remove spaces in column names
+    state.df['Date'] = pd.to_datetime(state.df['Date'], dayfirst=True)
+    state.df.set_index('Date', inplace=True)
+
+if state.df is not None:
+    df = state.df
 
     # Calculate correlations and time lags for all pairs of series
     corr_values = []
@@ -43,76 +87,37 @@ if uploaded_file is not None:
             max_lag = 0
             for lag in lag_range:
                 corr_lag = df[series1].corr(df[series2].shift(lag))
-                if abs(corr_lag) > abs(max_corr):
+                if corr_lag > max_corr:
                     max_corr = corr_lag
                     max_lag = lag
             corr_values.append(corr)
             time_lags.append(max_lag)
 
-  # Create dataframe with correlations and time lags
-    correlations_df = pd.DataFrame({'Series 1': [df.columns[i] for i in range(len(df.columns)) for j in range(i+1, len(df.columns))],
-                                    'Series 2': [df.columns[j] for i in range(len(df.columns)) for j in range(i+1, len(df.columns))],
-                                    'Correlation': corr_values,
-                                    'Time lag (days)': time_lags})
+    # Create a dataframe of the top 10 correlated metrics with time lags
+    corr_df = pd.DataFrame({
+        'Series 1': [],
+        'Series 2': [],
+        'Correlation': [],
+        'Time lag (days)': []
+    })
 
-    correlations = df.corr()
+    # Find the top 10 correlations
+    indices = np.argsort(corr_values)[-10:]
+    for idx in indices:
+        series1 = df.columns[idx // len(df.columns)]
+        series2 = df.columns[idx % len(df.columns)]
+        correlation = corr_values[idx]
+        time_lag = time_lags[idx]
+        corr_df = corr_df.append({
+            'Series 1': series1,
+            'Series 2': series2,
+            'Correlation': correlation,
+            'Time lag (days)': time_lag
+        }, ignore_index=True)
 
-    st.header("Correlation matrix")
+    # Sort the table by correlation value
+    corr_df = corr_df.sort_values(by='Correlation', ascending=False)
 
-    fig, ax = plt.subplots(figsize=(10, 8))
-    sns.heatmap(correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
-    ax.set_title('Correlations')
-    st.pyplot(fig)
-
-    # Save the plot to a buffer
-    buffer = io.BytesIO()
-    fig.savefig(buffer, format='png')
-    buffer.seek(0)
-
-    # Convert the buffer to bytes
-    img_bytes = buffer.getvalue()
-    buffer.close()
-
-    # Export heatmap plot to PNG
-    if st.button('Export heatmap plot to PNG'):
-        st.download_button("Download heatmap plot", img_bytes, "heatmap_plot.png", "image/png")
-
-    # Display top 10 correlated metrics sorted by correlation in descending order
-    top_10_correlations = correlations_df.sort_values('Correlation', ascending=False).head(10)
-    st.header("Top 10 correlated metrics (including optimal time lag)")
-    st.write(top_10_correlations[['Series 1', 'Series 2', 'Correlation', 'Time lag (days)']])
-    
-    # Time series chart
-    st.header("Time series chart for selected metrics")
-    st.markdown("Select two metrics to see how they compare over time. Use this to help with identifying the timeframe between cause and effect.")
-    selected_metrics = st.multiselect("Select two metrics to plot:", options=df.columns, default=df.columns[:2].tolist())
-
-    if len(selected_metrics) == 2:
-        fig, ax = plt.subplots(figsize=(12, 6))
-        ax.plot(df[selected_metrics[0]], label=selected_metrics[0])
-        ax.set_ylabel(selected_metrics[0], fontsize=12)
-
-        ax2 = ax.twinx()
-        ax2.plot(df[selected_metrics[1]], color='orange', label=selected_metrics[1])
-        ax2.set_ylabel(selected_metrics[1], fontsize=12)
-
-        ax.set_xlabel('Date', fontsize=12)
-        ax.legend(loc='upper left')
-        ax2.legend(loc='upper right')
-
-        st.pyplot(fig)
-        
-        # Save the plot to a buffer
-        buffer = io.BytesIO()
-        fig.savefig(buffer, format='png')
-        buffer.seek(0)
-
-        # Convert the buffer to bytes
-        img_bytes = buffer.getvalue()
-        buffer.close()
-
-        # Export time series plot to PNG
-        if st.button('Export time series plot to PNG'):
-            st.download_button("Download time series plot", img_bytes, "time_series_plot.png", "image/png")
-    else:
-        st.warning("Please select exactly two metrics.")
+    # Show the table of top 10 correlated metrics with time lags
+    st.header("Time lags between top 10 correlated metrics")
+    st.write(corr_df)
