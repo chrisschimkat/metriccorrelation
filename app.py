@@ -13,10 +13,10 @@ st.title("Metrics Correlation")
 example_csv_link = '[here](https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv?raw=true)'
 st.markdown(f"See example input file {example_csv_link} (right-click and choose 'Save link as...' to download)")
 
-uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
-
 # Add a button for loading the sample CSV
 load_sample_csv = st.button('Load Sample CSV')
+
+uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
 if load_sample_csv:
     sample_csv_url = 'https://raw.githubusercontent.com/chrisschimkat/metriccorrelation/main/Book1.csv'
