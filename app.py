@@ -40,13 +40,13 @@ if uploaded_file is not None:
     fig.savefig(buffer, format='png')
     buffer.seek(0)
 
-    # Create an Image object and convert the buffer to base64
-    image = Image.open(buffer)
+    # Convert the buffer to bytes
+    img_bytes = buffer.getvalue()
     buffer.close()
 
     # Export heatmap plot to PNG
     if st.button('Export heatmap plot to PNG'):
-        st.download_button("Download heatmap plot", image, "heatmap_plot.png", "image/png")
+        st.download_button("Download heatmap plot", img_bytes, "heatmap_plot.png", "image/png")
     
     st.header("Top 10 correlations:")
     
@@ -76,19 +76,19 @@ if uploaded_file is not None:
         ax2.legend(loc='upper right')
 
         st.pyplot(fig)
-
+        
         # Save the plot to a buffer
         buffer = io.BytesIO()
         fig.savefig(buffer, format='png')
         buffer.seek(0)
 
-        # Create an Image object and convert the buffer to base64
-        image = Image.open(buffer)
+        # Convert the buffer to bytes
+        img_bytes = buffer.getvalue()
         buffer.close()
 
         # Export time series plot to PNG
         if st.button('Export time series plot to PNG'):
-            st.download_button("Download time series plot", image, "time_series_plot.png", "image/png")
+            st.download_button("Download time series plot", img_bytes, "time_series_plot.png", "image/png")
     else:
         st.warning("Please select exactly two metrics.")
 
