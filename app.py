@@ -20,15 +20,18 @@ st.markdown(f"See example input file {example_csv_link} (right-click and choose 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
 @st.cache_data(ttl=300)
-def load_data(file):
-    df = pd.read_csv(file)
-    df.columns = [col.capitalize() for col in df.columns]
-    df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
-    df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
-    df.set_index('Date', inplace=True)
-    return df
+def load_data(uploaded_file):
+    try:
+        df = pd.read_csv(uploaded_file)
+        df.columns = [col.capitalize() for col in df.columns]
+        df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
+        df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
+        df.set_index('Date', inplace=True)
+        return df
+    except Exception as e:
+        st.write("Error: ", e)
 
-@st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
+@st.cache_data(ttl=300)
 def calculate_correlations(df):
     corr_values = []
     time_lags = []
@@ -55,6 +58,7 @@ def calculate_correlations(df):
                                     'Time lag (days)': time_lags})
 
     return correlations_df
+
 
 @st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
 def plot_heatmap(df):
