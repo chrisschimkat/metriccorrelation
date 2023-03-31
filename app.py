@@ -60,6 +60,20 @@ if uploaded_file is not None:
 
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
     st.write(top_10_correlations.to_frame('Correlation'))
+    
+    # Calculate time lags for each pair of series in top 10 correlations
+    for pair in top_10_correlations.index:
+        series1, series2 = pair
+        corr = top_10_correlations[pair]
+        time_lags = np.arange(-30, 31)  # Range of time lags to consider
+        max_corr = -1
+        max_lag = 0
+        for lag in time_lags:
+            corr_lag = df[series1].corr(df[series2].shift(lag))
+            if abs(corr_lag) > abs(max_corr):
+                max_corr = corr_lag
+                max_lag = lag
+        st.write(f"{series1} -> {series2}: {max_lag} days ({corr:.2f} correlation)")
 
     # Time series chart
     st.header("Time series chart for selected metrics")
