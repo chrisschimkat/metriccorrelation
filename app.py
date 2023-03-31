@@ -30,6 +30,31 @@ if uploaded_file is not None:
     df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
     df.set_index('Date', inplace=True)
 
+    # Calculate correlations and time lags for all pairs of series
+    corr_values = []
+    time_lags = []
+    for i, series1 in enumerate(df.columns):
+        for j, series2 in enumerate(df.columns):
+            if j <= i:
+                continue
+            corr = df[series1].corr(df[series2])
+            lag_range = np.arange(-30, 31)  # Range of time lags to consider
+            max_corr = -1
+            max_lag = 0
+            for lag in lag_range:
+                corr_lag = df[series1].corr(df[series2].shift(lag))
+                if abs(corr_lag) > abs(max_corr):
+                    max_corr = corr_lag
+                    max_lag = lag
+            corr_values.append(corr)
+            time_lags.append(max_lag)
+
+    # Create dataframe with correlations and time lags
+    correlations_df = pd.DataFrame({'Series 1': [df.columns[i] for i in range(len(df.columns)) for j in range(i+1, len(df.columns))],
+                                    'Series 2': [df.columns[j] for i in range(len(df.columns)) for j in range(i+1, len(df.columns))],
+                                    'Correlation': corr_values,
+                                    'Time lag (days)': time_lags})
+
     correlations = df.corr()
 
     st.header("Correlation matrix")
@@ -53,35 +78,20 @@ if uploaded_file is not None:
         st.download_button("Download heatmap plot", img_bytes, "heatmap_plot.png", "image/png")
     
     st.header("Top 10 correlations:")
-    
+
     # Mask the lower triangle of the correlation matrix
     mask = np.triu(np.ones_like(correlations, dtype=bool), k=1)
     correlations_upper_triangle = correlations.where(mask)
 
     top_10_correlations = correlations_upper_triangle.stack().nlargest(10)
-    # Calculate time lags for each pair of series in top 10 correlations
-    time_lags = []
-    for pair in top_10_correlations.index:
-        series1, series2 = pair
-        corr = top_10_correlations[pair]
-        lag_range = np.arange(-30, 31)  # Range of time lags to consider
-        max_corr = -1
-        max_lag = 0
-        for lag in lag_range:
-            corr_lag = df[series1].corr(df[series2].shift(lag))
-            if abs(corr_lag) > abs(max_corr):
-                max_corr = corr_lag
-                max_lag = lag
-        time_lags.append(max_lag)
+    st.write(top_10_correlations.to_frame('Correlation'))
 
-    # Combine top 10 correlations table and time lags
-    correlations_table = top_10_correlations.to_frame('Correlation')
-    correlations_table['Time lag (days)'] = time_lags
+    st.header("Time lags between top 10 correlated metrics")
 
-    # Display combined table
-    st.write(correlations_table)
-
-
+    # Display time lags for top 10 correlations
+    st.write(correlations_df[correlations_df['Series 1'].isin([pair[0] for pair in top_10_correlations.index]) & 
+                            correlations_df['Series 2'].isin([pair[1] for pair in top_10_correlations.index])])
+    
     # Time series chart
     st.header("Time series chart for selected metrics")
     st.markdown("Select two metrics to see how they compare over time. Use this to help with identifying the timeframe between cause and effect.")
@@ -116,5 +126,3 @@ if uploaded_file is not None:
             st.download_button("Download time series plot", img_bytes, "time_series_plot.png", "image/png")
     else:
         st.warning("Please select exactly two metrics.")
-
-
