@@ -7,7 +7,7 @@ import io
 from PIL import Image
 import requests
 from io import StringIO
-from streamlit.server.server import Server
+from streamlit.server import Server
 
 class SessionState(object):
     def __init__(self, **kwargs):
