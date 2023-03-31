@@ -69,7 +69,7 @@ def calculate_correlations(df):
     return correlations_df, df_has
 
 
-@st.cache_data(ttl=300, hash_funcs={pd.DataFrame: lambda x: hashlib.md5(x.to_numpy().copy(order='C')).hexdigest()})
+@st.cache_data(ttl=300)
 def plot_heatmap(df):
     correlations = df.corr()
     fig, ax = plt.subplots(figsize=(10, 8))
