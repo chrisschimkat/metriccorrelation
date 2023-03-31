@@ -43,6 +43,7 @@ if uploaded_file is not None:
 
     # Time series chart
     st.header("Time series chart for selected metrics")
+    st.markdown("Select two metrics to see how they compare over time. Use this to help with identifying the timeframe between cause and effect.")
     selected_metrics = st.multiselect("Select two metrics to plot:", options=df.columns, default=df.columns[:2].tolist())
 
     if len(selected_metrics) == 2:
