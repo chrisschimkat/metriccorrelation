@@ -18,7 +18,7 @@ st.markdown(f"See example input file {example_csv_link} (right-click and choose 
 
 uploaded_file = st.file_uploader("Upload a CSV file:", type=['csv'])
 
-@st.cache
+@st.cache_data
 def load_data(file):
     df = pd.read_csv(file)
     df.columns = [col.capitalize() for col in df.columns]
@@ -27,7 +27,7 @@ def load_data(file):
     df.set_index('Date', inplace=True)
     return df
 
-@st.cache
+@st.cache_data
 def calculate_correlations(df):
     corr_values = []
     time_lags = []
@@ -55,14 +55,14 @@ def calculate_correlations(df):
 
     return correlations_df
 
-@st.cache
+@st.cache_data
 def plot_heatmap(correlations):
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(correlations, annot=True, fmt='.2f', cmap='plasma_r', vmin=-1, vmax=1, ax=ax)
     ax.set_title('Correlations')
     return fig
 
-@st.cache
+@st.cache_data
 def plot_time_series(df, selected_metrics):
     fig, ax = plt.subplots(figsize=(12, 6))
     ax.plot(df[selected_metrics[0]], label=selected_metrics[0])
