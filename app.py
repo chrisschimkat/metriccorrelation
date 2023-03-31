@@ -24,13 +24,20 @@ if load_sample_csv:
     uploaded_file = StringIO(content.decode('utf-8'))
 
 if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+    st.session_state.uploaded_file = uploaded_file
+
+if 'uploaded_file' in st.session_state:
+    df = pd.read_csv(st.session_state.uploaded_file)
     df.columns = [col.capitalize() for col in df.columns]
     df.columns = [col.strip() for col in df.columns]  # Remove spaces in column names
     df['Date'] = pd.to_datetime(df['Date'], dayfirst=True)
     df.set_index('Date', inplace=True)
 
-    correlations = df.corr()
+    if 'correlations' not in st.session_state:
+        correlations = df.corr()
+        st.session_state.correlations = correlations
+    else:
+        correlations = st.session_state.correlations
 
     st.header("Correlation matrix")
 
